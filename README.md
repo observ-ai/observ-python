@@ -1,33 +1,33 @@
 # Observ Python SDK
 
-AI tracing SDK for Observ supporting multiple AI providers.
+AI tracing and semantic caching SDK for [Observ](https://observ.dev).
 
 ## Installation
 
 ```bash
-pip install observ
+pip install observ-sdk
 ```
 
 Install provider-specific SDKs as needed:
 
 ```bash
 # For Anthropic
-pip install anthropic
+pip install observ-sdk[anthropic]
 
-# For OpenAI
-pip install openai
+# For OpenAI (also used by xAI and OpenRouter)
+pip install observ-sdk[openai]
 
 # For Google Gemini
-pip install google-generativeai
+pip install observ-sdk[gemini]
 
 # For Mistral
-pip install mistralai
+pip install observ-sdk[mistral]
 
-# For xAI and OpenRouter (use OpenAI SDK)
-pip install openai
+# Install all providers
+pip install observ-sdk[all]
 ```
 
-## Usage
+## Quick Start
 
 ### Anthropic
 
@@ -35,21 +35,21 @@ pip install openai
 import anthropic
 from observ import Observ
 
-# Initialize Observ
-ob = Observ(api_key="your-observ-api-key", recall=True)
+ob = Observ(
+    api_key="your-observ-api-key",
+    recall=True,  # Enable semantic caching
+)
 
-# Initialize Anthropic client
 client = anthropic.Anthropic(api_key="your-anthropic-key")
-
-# Wrap the client to enable tracing
 client = ob.anthropic(client)
 
 # Use normally - all calls are automatically traced
 response = client.messages.create(
-    model="claude-3-haiku-20240307",
+    model="claude-sonnet-4-20250514",
     max_tokens=1024,
     messages=[{"role": "user", "content": "Hello!"}]
 )
+print(response.content[0].text)
 ```
 
 ### OpenAI
@@ -58,16 +58,14 @@ response = client.messages.create(
 import openai
 from observ import Observ
 
-# Initialize Observ
-ob = Observ(api_key="your-observ-api-key", recall=True)
+ob = Observ(
+    api_key="your-observ-api-key",
+    recall=True,
+)
 
-# Initialize OpenAI client
 client = openai.OpenAI(api_key="your-openai-key")
-
-# Wrap the client to enable tracing
 client = ob.openai(client)
 
-# Use normally - all calls are automatically traced
 response = client.chat.completions.create(
     model="gpt-4",
     messages=[{"role": "user", "content": "Hello!"}]
@@ -81,19 +79,15 @@ print(response.choices[0].message.content)
 import google.generativeai as genai
 from observ import Observ
 
-# Initialize Observ
-ob = Observ(api_key="your-observ-api-key", recall=True)
+ob = Observ(
+    api_key="your-observ-api-key",
+    recall=True,
+)
 
-# Configure Gemini API key
 genai.configure(api_key="your-gemini-key")
-
-# Initialize Gemini model
 model = genai.GenerativeModel("gemini-pro")
-
-# Wrap the model to enable tracing
 model = ob.gemini(model)
 
-# Use normally - all calls are automatically traced
 response = model.generate_content("Hello!")
 print(response.text)
 ```
@@ -104,16 +98,14 @@ print(response.text)
 from mistralai import Mistral
 from observ import Observ
 
-# Initialize Observ
-ob = Observ(api_key="your-observ-api-key", recall=True)
+ob = Observ(
+    api_key="your-observ-api-key",
+    recall=True,
+)
 
-# Initialize Mistral client
 client = Mistral(api_key="your-mistral-key")
-
-# Wrap the client to enable tracing
 client = ob.mistral(client)
 
-# Use normally - all calls are automatically traced
 response = client.chat.completions.create(
     model="mistral-large-latest",
     messages=[{"role": "user", "content": "Hello!"}]
@@ -127,19 +119,17 @@ print(response.choices[0].message.content)
 import openai
 from observ import Observ
 
-# Initialize Observ
-ob = Observ(api_key="your-observ-api-key", recall=True)
+ob = Observ(
+    api_key="your-observ-api-key",
+    recall=True,
+)
 
-# Initialize xAI client using OpenAI SDK with xAI endpoint
 client = openai.OpenAI(
     api_key="your-xai-key",
     base_url="https://api.x.ai/v1"
 )
-
-# Wrap the client to enable tracing
 client = ob.xai(client)
 
-# Use normally - all calls are automatically traced
 response = client.chat.completions.create(
     model="grok-beta",
     messages=[{"role": "user", "content": "Hello!"}]
@@ -153,23 +143,17 @@ print(response.choices[0].message.content)
 import openai
 from observ import Observ
 
-# Initialize Observ
-ob = Observ(api_key="your-observ-api-key", recall=True)
-
-# Initialize OpenRouter client using OpenAI SDK
-client = openai.OpenAI(
-    api_key="your-openrouter-key",
-    base_url="https://openrouter.ai/api/v1",
-    default_headers={
-        "HTTP-Referer": "https://your-app-url.com",  # Optional: for OpenRouter analytics
-        "X-Title": "Your App Name"  # Optional: for OpenRouter analytics
-    }
+ob = Observ(
+    api_key="your-observ-api-key",
+    recall=True,
 )
 
-# Wrap the client to enable tracing
+client = openai.OpenAI(
+    api_key="your-openrouter-key",
+    base_url="https://openrouter.ai/api/v1"
+)
 client = ob.openrouter(client)
 
-# Use normally - all calls are automatically traced
 response = client.chat.completions.create(
     model="openai/gpt-4",
     messages=[{"role": "user", "content": "Hello!"}]
@@ -177,29 +161,50 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-## Features
-
-- Automatic trace creation before API calls
-- Duration tracking in milliseconds
-- Error handling and logging
-- Non-blocking async trace updates
-- Support for semantic caching (recall) when enabled
-- Metadata support via `.with_metadata()` chaining
-
-## Metadata Support
-
-All wrapped clients support metadata chaining:
+## Configuration
 
 ```python
-# Anthropic example
-response = client.messages.with_metadata({"user_id": "123"}).create(
-    model="claude-3-haiku-20240307",
+ob = Observ(
+    api_key="your-observ-api-key",  # Required
+    recall=True,                     # Enable semantic caching (default: False)
+    environment="production",        # Environment tag (default: "production")
+    endpoint="https://api.observ.dev",  # Custom endpoint (optional)
+    debug=False,                     # Enable debug logging (default: False)
+)
+```
+
+## Features
+
+- **Automatic Tracing**: All LLM calls are automatically traced
+- **Semantic Caching**: Cache similar prompts to reduce costs and latency
+- **Multi-Provider**: Support for Anthropic, OpenAI, Gemini, Mistral, xAI, and OpenRouter
+- **Session Tracking**: Group related calls with session IDs
+- **Metadata**: Attach custom metadata to traces
+
+## Metadata and Sessions
+
+All wrapped clients support metadata and session ID chaining:
+
+```python
+# Add metadata to a request
+response = client.messages.with_metadata({"user_id": "123", "feature": "chat"}).create(
+    model="claude-sonnet-4-20250514",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
-# OpenAI example
-response = client.chat.completions.with_metadata({"user_id": "123"}).create(
-    model="gpt-4",
+# Track conversation sessions
+response = client.messages.with_session_id("conversation-abc").create(
+    model="claude-sonnet-4-20250514",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+# Combine both
+response = client.messages.with_metadata({"user_id": "123"}).with_session_id("session-abc").create(
+    model="claude-sonnet-4-20250514",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
+
+## License
+
+MIT

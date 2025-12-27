@@ -1,18 +1,17 @@
 """Provider wrappers for Observ SDK"""
 
 from .anthropic import AnthropicMessagesWrapper
-from .openai import OpenAIChatCompletionsWrapper
 from .gemini import GeminiGenerateContentWrapper
-from .xai import XAIChatCompletionsWrapper
 from .mistral import MistralChatCompletionsWrapper
+from .openai import OpenAIChatCompletionsWrapper
 from .openrouter import OpenRouterChatCompletionsWrapper
+from .xai import XAIChatCompletionsWrapper
 
 __all__ = [
     "AnthropicMessagesWrapper",
-    "OpenAIChatCompletionsWrapper",
     "GeminiGenerateContentWrapper",
-    "XAIChatCompletionsWrapper",
     "MistralChatCompletionsWrapper",
+    "OpenAIChatCompletionsWrapper",
     "OpenRouterChatCompletionsWrapper",
+    "XAIChatCompletionsWrapper",
 ]
-
