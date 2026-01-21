@@ -51,11 +51,17 @@ class XAIChatCompletionsWrapper:
                 f"{self._wt.endpoint}/v1/llm/complete",
                 json=completion_request,
                 headers={
-                    "Authorization": f"Bearer {self._wt.api_key}",
+                    "Authorization": self._wt.get_auth_header(),
                     "Content-Type": "application/json",
                 },
             )
             response.raise_for_status()
+
+            # Check for new JWT token in response headers
+            session_token = response.headers.get("x-session-token")
+            if session_token:
+                self._wt.set_jwt_token(session_token)
+
             gateway_response = response.json()
 
             if gateway_response.get("action") == "cache_hit":

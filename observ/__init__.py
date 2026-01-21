@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import httpx
 
@@ -28,7 +28,7 @@ class Observ:
         self,
         api_key: str,
         project_id: str = "default",
-        recall: bool = False,
+        recall: bool = True,
         environment: str = "production",
         endpoint: str = "https://api.observ.dev",
         debug: bool = False,
@@ -39,12 +39,23 @@ class Observ:
         self.environment = environment
         self.endpoint = endpoint
         self.debug = debug
+        self.jwt_token: Optional[str] = None
         self.http_client = httpx.Client(timeout=30.0)
 
     def log(self, message: str) -> None:
         """Log a message if debug mode is enabled."""
         if self.debug:
             print(f"[Observ] {message}")
+
+    def set_jwt_token(self, token: str) -> None:
+        """Set JWT token for session reuse."""
+        self.jwt_token = token
+
+    def get_auth_header(self) -> str:
+        """Get authorization header (JWT if available, otherwise API key)."""
+        if self.jwt_token:
+            return f"Bearer {self.jwt_token}"
+        return f"Bearer {self.api_key}"
 
     def anthropic(self, client: anthropic.Anthropic) -> anthropic.Anthropic:
         """Wrap an Anthropic client to route through Observ gateway."""

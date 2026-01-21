@@ -1,6 +1,6 @@
 [project]
 name = "observ-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "Integration with the Observ AI platform for Python projects."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -47,6 +47,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "ruff>=0.6.0",
     "mypy>=1.11.0",
+    "python-semantic-release>=9.0.0",
 ]
 
 [build-system]
@@ -69,3 +70,12 @@ python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+dist_path = "dist/"
+upload_to_pypi = true
+upload_to_release = true
+build_command = "python -m pip install build && python -m build"

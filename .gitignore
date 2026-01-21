@@ -47,3 +47,5 @@ Thumbs.db
 # uv
 .uv/
 uv.lock
+
+.env
