@@ -1,6 +1,6 @@
 [project]
 name = "observ-sdk"
-version = "0.1.1"
+version = "0.1.2"
 description = "Integration with the Observ AI platform for Python projects."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -79,3 +79,8 @@ dist_path = "dist/"
 upload_to_pypi = true
 upload_to_release = true
 build_command = "python -m pip install build && python -m build"
+
+[dependency-groups]
+dev = [
+    "twine>=6.2.0",
+]

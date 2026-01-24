@@ -105,17 +105,20 @@ class Observ:
             if hasattr(response, "content") and len(response.content) > 0:
                 content = response.content[0].text
 
-            tokens_used = 0
+            # Extract tokens - Anthropic provides input_tokens and output_tokens
+            input_tokens = 0
+            output_tokens = 0
             if hasattr(response, "usage"):
-                tokens_used = getattr(response.usage, "input_tokens", 0) + getattr(
-                    response.usage, "output_tokens", 0
-                )
+                input_tokens = getattr(response.usage, "input_tokens", 0)
+                output_tokens = getattr(response.usage, "output_tokens", 0)
 
             callback = {
                 "trace_id": trace_id,
                 "content": content,
                 "duration_ms": duration_ms,
-                "tokens_used": tokens_used,
+                "tokens_used": input_tokens + output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
             }
 
             self.http_client.post(
@@ -135,19 +138,21 @@ class Observ:
                 if hasattr(message, "content"):
                     content = message.content or ""
 
-            tokens_used = 0
+            # Extract tokens - OpenAI provides prompt_tokens and completion_tokens
+            input_tokens = 0
+            output_tokens = 0
             if hasattr(response, "usage"):
                 usage = response.usage
-                if hasattr(usage, "total_tokens"):
-                    tokens_used = usage.total_tokens
-                elif hasattr(usage, "prompt_tokens") and hasattr(usage, "completion_tokens"):
-                    tokens_used = usage.prompt_tokens + usage.completion_tokens
+                input_tokens = getattr(usage, "prompt_tokens", 0)
+                output_tokens = getattr(usage, "completion_tokens", 0)
 
             callback = {
                 "trace_id": trace_id,
                 "content": content,
                 "duration_ms": duration_ms,
-                "tokens_used": tokens_used,
+                "tokens_used": input_tokens + output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
             }
 
             self.http_client.post(
@@ -170,21 +175,21 @@ class Observ:
                     if len(candidate.content.parts) > 0:
                         content = candidate.content.parts[0].text
 
-            tokens_used = 0
+            # Extract tokens - Gemini provides prompt_token_count and candidates_token_count
+            input_tokens = 0
+            output_tokens = 0
             if hasattr(response, "usage_metadata"):
                 usage = response.usage_metadata
-                if hasattr(usage, "total_token_count"):
-                    tokens_used = usage.total_token_count
-                elif hasattr(usage, "prompt_token_count") and hasattr(
-                    usage, "candidates_token_count"
-                ):
-                    tokens_used = usage.prompt_token_count + usage.candidates_token_count
+                input_tokens = getattr(usage, "prompt_token_count", 0)
+                output_tokens = getattr(usage, "candidates_token_count", 0)
 
             callback = {
                 "trace_id": trace_id,
                 "content": content,
                 "duration_ms": duration_ms,
-                "tokens_used": tokens_used,
+                "tokens_used": input_tokens + output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
             }
 
             self.http_client.post(
@@ -204,19 +209,21 @@ class Observ:
                 if hasattr(message, "content"):
                     content = message.content or ""
 
-            tokens_used = 0
+            # Extract tokens - Mistral provides prompt_tokens and completion_tokens
+            input_tokens = 0
+            output_tokens = 0
             if hasattr(response, "usage"):
                 usage = response.usage
-                if hasattr(usage, "total_tokens"):
-                    tokens_used = usage.total_tokens
-                elif hasattr(usage, "prompt_tokens") and hasattr(usage, "completion_tokens"):
-                    tokens_used = usage.prompt_tokens + usage.completion_tokens
+                input_tokens = getattr(usage, "prompt_tokens", 0)
+                output_tokens = getattr(usage, "completion_tokens", 0)
 
             callback = {
                 "trace_id": trace_id,
                 "content": content,
                 "duration_ms": duration_ms,
-                "tokens_used": tokens_used,
+                "tokens_used": input_tokens + output_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
             }
 
             self.http_client.post(
